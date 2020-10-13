@@ -8,7 +8,6 @@ TEST_SIZE = 0.4
 
 
 def main():
-
     # Check command-line arguments
     if len(sys.argv) != 2:
         sys.exit("Usage: python shopping.py data")
@@ -59,7 +58,73 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    raise NotImplementedError
+    with open(filename) as file:
+        contents = csv.reader(file)
+
+        # Categorizing indices
+        for content in contents:
+            first_row = content
+            break
+        int_type = []
+        float_type = []
+        month_type = []
+        visitor_type = []
+        weekend_type = []
+        label_type = []
+        month = {'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4,
+                 'June': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9,
+                 'Nov': 10, 'Dec': 11}
+
+        for num, heading in enumerate(first_row):
+            if heading in ['Administrative_Duration',
+                           'Informational_Duration',
+                           'ProductRelated_Duration',
+                           'BounceRates', 'ExitRates',
+                           'PageValues', 'SpecialDay']:
+                float_type.append(num)
+            elif heading in ['Administrative', 'Informational',
+                             'ProductRelated',
+                             'OperatingSystems',
+                             'Browser', 'Region', 'TrafficType']:
+                int_type.append(num)
+            elif heading == 'Month':
+                month_type.append(num)
+            elif heading == 'Weekend':
+                weekend_type.append(num)
+            elif heading == 'VisitorType':
+                visitor_type.append(num)
+            elif heading == 'Revenue':
+                label_type.append(num)
+        next(contents)
+
+        # Finding evidences and labels
+        evidences = []
+        labels = []
+        for line in contents:
+            row = []
+            for num, value in enumerate(line):
+                if num in int_type:
+                    row.append(int(value))
+                elif num in float_type:
+                    row.append(float(value))
+                elif num in month_type:
+                    row.append(month[value])
+                elif num in visitor_type:
+                    row.append(1) if value == 'Returning_Visitor' else \
+                        row.append(0)
+                elif num in weekend_type:
+                    if value == 'TRUE':
+                        row.append(1)
+                    else:
+                        row.append(0)
+                elif num in label_type:
+                    if value == 'TRUE':
+                        labels.append(1)
+                    else:
+                        labels.append(0)
+            evidences.append(row)
+    result = (evidences, labels)
+    return result
 
 
 def train_model(evidence, labels):
@@ -67,7 +132,9 @@ def train_model(evidence, labels):
     Given a list of evidence lists and a list of labels, return a
     fitted k-nearest neighbor model (k=1) trained on the data.
     """
-    raise NotImplementedError
+    model = KNeighborsClassifier(n_neighbors=1)
+    model.fit(evidence, labels)
+    return model
 
 
 def evaluate(labels, predictions):
@@ -85,7 +152,18 @@ def evaluate(labels, predictions):
     representing the "true negative rate": the proportion of
     actual negative labels that were accurately identified.
     """
-    raise NotImplementedError
+    positive_labels = 0
+    negative_labels = 0
+    for num, item in enumerate(labels):
+        if item == 1 and predictions[num] == 1:
+            positive_labels += 1
+        if item == 0 and predictions[num] == 0:
+            negative_labels += 1
+
+    sensitivity = positive_labels / (list(labels).count(1))
+    specificity = negative_labels / (list(labels).count(0))
+    result = (sensitivity, specificity)
+    return result
 
 
 if __name__ == "__main__":
