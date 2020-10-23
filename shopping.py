@@ -59,12 +59,14 @@ def load_data(filename):
     is 1 if Revenue is true, and 0 otherwise.
     """
     with open(filename) as file:
-        contents = csv.reader(file)
+        contents_page = csv.reader(file)
 
         # Categorizing indices
-        for content in contents:
-            first_row = content
-            break
+        contents = []
+        for content in contents_page:
+            contents.append(content)
+
+        first_row = contents[0]
         int_type = []
         float_type = []
         month_type = []
@@ -95,7 +97,7 @@ def load_data(filename):
                 visitor_type.append(num)
             elif heading == 'Revenue':
                 label_type.append(num)
-        next(contents)
+        contents.remove(first_row)
 
         # Finding evidences and labels
         evidences = []
@@ -110,18 +112,14 @@ def load_data(filename):
                 elif num in month_type:
                     row.append(month[value])
                 elif num in visitor_type:
-                    row.append(1) if value == 'Returning_Visitor' else \
-                        row.append(0)
+                    row.append(int(1)) if value == 'Returning_Visitor' else \
+                        row.append(int(0))
                 elif num in weekend_type:
-                    if value == 'TRUE':
-                        row.append(1)
-                    else:
-                        row.append(0)
+                    row.append(int(1)) if value == 'TRUE' else \
+                        row.append(int(0))
                 elif num in label_type:
-                    if value == 'TRUE':
-                        labels.append(1)
-                    else:
-                        labels.append(0)
+                    labels.append(int(1)) if value == 'TRUE' else \
+                        labels.append(int(0))
             evidences.append(row)
     result = (evidences, labels)
     return result
